@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Term Deposit Ledger — Subscription Forecast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F1E6;
+    --paper-line:#DFD8C4;
+    --ink:#20241F;
+    --ink-soft:#5B5A4E;
+    --brass:#96772E;
+    --brass-soft:#C9A85C;
+    --stamp-green:#2F6F4F;
+    --stamp-red:#A33B2E;
+    --card:#FFFFFF;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, #EFE9D8 0%, var(--paper) 45%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    padding:48px 20px 80px;
+    min-height:100vh;
+  }
+
+  .sheet{
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  .letterhead{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:6px;
+  }
+
+  .letterhead h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(28px, 5vw, 40px);
+    letter-spacing:-0.01em;
+    margin:0;
+    line-height:1.05;
+  }
+
+  .letterhead .doc-id{
+    text-align:right;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:.06em;
+  }
+
+  .subhead{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    letter-spacing:.03em;
+    margin:10px 0 34px;
+    border-bottom:1px dashed var(--paper-line);
+    padding-bottom:24px;
+  }
+
+  form{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    box-shadow:0 1px 0 var(--paper-line), 0 18px 40px -30px rgba(32,36,31,.4);
+  }
+
+  .ledger-row{
+    display:grid;
+    grid-template-columns:44px 1fr 1fr;
+    align-items:center;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .ledger-row:last-of-type{border-bottom:none;}
+
+  .ledger-row.wide{
+    grid-template-columns:44px 1fr;
+  }
+
+  .line-no{
+    font-size:11px;
+    color:var(--brass);
+    padding:14px 0 14px 16px;
+    align-self:start;
+    padding-top:18px;
+    font-weight:600;
+  }
+
+  .field{
+    padding:12px 18px 12px 6px;
+    border-left:1px dashed var(--paper-line);
+  }
+  .ledger-row.wide .field{
+    border-right:none;
+  }
+  .field:first-of-type{border-left:1px dashed var(--paper-line);}
+
+  .field label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+
+  .field input, .field select{
+    width:100%;
+    border:none;
+    border-bottom:1px solid var(--ink);
+    background:transparent;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14.5px;
+    color:var(--ink);
+    padding:4px 2px 6px;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+
+  .field select{
+    background-image:linear-gradient(45deg, transparent 50%, var(--brass) 50%), linear-gradient(135deg, var(--brass) 50%, transparent 50%);
+    background-position: calc(100% - 10px) 12px, calc(100% - 4px) 12px;
+    background-size:6px 6px, 6px 6px;
+    background-repeat:no-repeat;
+    cursor:pointer;
+  }
+
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-bottom:2px solid var(--brass);
+  }
+
+  .field input:focus-visible, .field select:focus-visible{
+    outline:2px solid var(--brass-soft);
+    outline-offset:3px;
+  }
+
+  .section-label{
+    grid-column:1 / -1;
+    background:#EFE9D8;
+    font-size:10.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding:9px 16px;
+    border-bottom:1px solid var(--paper-line);
+    border-top:1px solid var(--paper-line);
+  }
+
+  .submit-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 18px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  .submit-row .hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    max-width:340px;
+    line-height:1.5;
+  }
+
+  button{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:14px 28px;
+    cursor:pointer;
+    letter-spacing:.02em;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  button:hover{background:var(--brass);}
+  button:disabled{background:var(--ink-soft); cursor:progress;}
+
+  .result-wrap{
+    margin-top:40px;
+    min-height:1px;
+  }
+
+  .stamp-card{
+    border:1px solid var(--paper-line);
+    background:var(--card);
+    padding:28px 26px;
+    display:flex;
+    align-items:center;
+    gap:26px;
+    opacity:0;
+    transform:translateY(6px);
+    animation:rise .35s ease forwards;
+  }
+
+  @keyframes rise{
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .stamp{
+    flex:0 0 auto;
+    width:104px;
+    height:104px;
+    border-radius:50%;
+    border:3px solid currentColor;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.04em;
+    transform:rotate(-8deg);
+    line-height:1.15;
+    text-transform:uppercase;
+  }
+  .stamp.yes{color:var(--stamp-green);}
+  .stamp.no{color:var(--stamp-red);}
+
+  .stamp-meta{flex:1 1 auto;}
+
+  .stamp-meta .verdict{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .stamp-meta .verdict.yes{color:var(--stamp-green);}
+  .stamp-meta .verdict.no{color:var(--stamp-red);}
+
+  .stamp-meta .detail{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+
+  .meter{
+    margin-top:10px;
+    height:6px;
+    background:var(--paper-line);
+    width:220px;
+    max-width:100%;
+    position:relative;
+    overflow:hidden;
+  }
+  .meter-fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:0%;
+    transition:width .5s ease;
+  }
+  .meter-fill.yes{background:var(--stamp-green);}
+  .meter-fill.no{background:var(--stamp-red);}
+
+  .error-card{
+    border:1px solid var(--stamp-red);
+    background:#FBEEEC;
+    color:var(--stamp-red);
+    padding:16px 18px;
+    font-size:13px;
+  }
+
+  @media (max-width:600px){
+    .ledger-row{grid-template-columns:32px 1fr;}
+    .ledger-row.two-col{grid-template-columns:32px 1fr 1fr;}
+    .field{border-left:none; border-top:1px dashed var(--paper-line);}
+    .field:first-of-type{border-top:none;}
+    .line-no{padding-top:14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stamp-card{animation:none; opacity:1; transform:none;}
+    .meter-fill{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="letterhead">
+    <h1>Term Deposit<br>Ledger</h1>
+    <div class="doc-id">FORM 16&nbsp;&mdash;&nbsp;SUBSCRIPTION<br>FORECAST WORKSHEET</div>
+  </div>
+  <p class="subhead">Enter the caller's particulars and the contact record below. The ledger returns a forecast on whether the client subscribes to a term deposit, drawn from the bank's historical calling campaigns.</p>
+
+  <form id="predict-form">
+
+    <div class="ledger-row">
+      <div class="line-no">01</div>
+      <div class="field">
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" value="30" required>
+      </div>
+      <div class="field">
+        <label for="job">Occupation</label>
+        <select id="job" name="job" required></select>
+      </div>
+    </div>
+
+    <div class="ledger-row">
+      <div class="line-no">02</div>
+      <div class="field">
+        <label for="marital">Marital status</label>
+        <select id="marital" name="marital" required>
+          <option value="married">Married</option>
+          <option value="single">Single</option>
+          <option value="divorced">Divorced</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="education">Education</label>
+        <select id="education" name="education" required>
+          <option value="tertiary">Tertiary</option>
+          <option value="secondary">Secondary</option>
+          <option value="primary">Primary</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Standing with the bank</div>
+
+    <div class="ledger-row">
+      <div class="line-no">03</div>
+      <div class="field">
+        <label for="default">In default?</label>
+        <select id="default" name="default" required>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="balance">Account balance (€)</label>
+        <input type="number" id="balance" name="balance" value="1000" required>
+      </div>
+    </div>
+
+    <div class="ledger-row">
+      <div class="line-no">04</div>
+      <div class="field">
+        <label for="housing">Housing loan?</label>
+        <select id="housing" name="housing" required>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="loan">Personal loan?</label>
+        <select id="loan" name="loan" required>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">This contact</div>
+
+    <div class="ledger-row">
+      <div class="line-no">05</div>
+      <div class="field">
+        <label for="contact">Contact method</label>
+        <select id="contact" name="contact" required>
+          <option value="cellular">Cellular</option>
+          <option value="telephone">Telephone</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="duration">Call duration (sec)</label>
+        <input type="number" id="duration" name="duration" value="200" required>
+      </div>
+    </div>
+
+    <div class="ledger-row">
+      <div class="line-no">06</div>
+      <div class="field">
+        <label for="day">Day of month</label>
+        <input type="number" id="day" name="day" min="1" max="31" value="15" required>
+      </div>
+      <div class="field">
+        <label for="month">Month</label>
+        <select id="month" name="month" required></select>
+      </div>
+    </div>
+
+    <div class="section-label">Campaign history</div>
+
+    <div class="ledger-row">
+      <div class="line-no">07</div>
+      <div class="field">
+        <label for="campaign">Contacts, this campaign</label>
+        <input type="number" id="campaign" name="campaign" value="1" required>
+      </div>
+      <div class="field">
+        <label for="previous">Contacts, before this campaign</label>
+        <input type="number" id="previous" name="previous" value="0" required>
+      </div>
+    </div>
+
+    <div class="ledger-row">
+      <div class="line-no">08</div>
+      <div class="field">
+        <label for="pdays">Days since last contact</label>
+        <input type="number" id="pdays" name="pdays" value="-1" required>
+        </div>
+      <div class="field">
+        <label for="poutcome">Previous outcome</label>
+        <select id="poutcome" name="poutcome" required>
+          <option value="unknown">Unknown</option>
+          <option value="failure">Failure</option>
+          <option value="other">Other</option>
+          <option value="success">Success</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <div class="hint">"Days since last contact" of <strong>-1</strong> means the client was not previously contacted.</div>
+      <button type="submit" id="submit-btn">Forecast subscription</button>
+    </div>
+  </form>
+
+  <div class="result-wrap" id="result-wrap"></div>
+
+</div>
+
+<script>
+  const jobs = ["admin.","unemployed","management","housemaid","entrepreneur","student","blue-collar","self-employed","retired","technician","services","unknown"];
+  const months = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+
+  const jobSelect = document.getElementById('job');
+  jobs.forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j;
+    opt.textContent = j.charAt(0).toUpperCase() + j.slice(1).replace('.', '');
+    if (j === 'admin.') opt.textContent = 'Admin';
+    jobSelect.appendChild(opt);
+  });
+
+  const monthSelect = document.getElementById('month');
+  months.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+    if (m === 'may') opt.selected = true;
+    monthSelect.appendChild(opt);
+  });
+
+  const form = document.getElementById('predict-form');
+  const resultWrap = document.getElementById('result-wrap');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Consulting the ledger…';
+
+    const fd = new FormData(form);
+    const numericFields = ['age','balance','day','duration','campaign','pdays','previous'];
+    const payload = {};
+    fd.forEach((value, key) => {
+      payload[key] = numericFields.includes(key) ? Number(value) : value;
+    });
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Server responded ${res.status}: ${errText}`);
+      }
+
+      const data = await res.json();
+      const isYes = data.prediction === 'yes';
+      const pct = Math.round(data.confidence * 100);
+
+      resultWrap.innerHTML = `
+        <div class="stamp-card">
+          <div class="stamp ${isYes ? 'yes' : 'no'}">${isYes ? 'Subscribes' : 'Declines'}</div>
+          <div class="stamp-meta">
+            <p class="verdict ${isYes ? 'yes' : 'no'}">${isYes ? 'Likely to subscribe' : 'Unlikely to subscribe'}</p>
+            <div class="detail">Model confidence: ${pct}%</div>
+            <div class="meter"><div class="meter-fill ${isYes ? 'yes' : 'no'}" style="width:${pct}%"></div></div>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      resultWrap.innerHTML = `<div class="error-card">Could not reach the ledger: ${err.message}</div>`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Forecast subscription';
+    }
+  });
+</script>
+
+</body>
+</html>
