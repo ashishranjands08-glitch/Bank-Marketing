@@ -1,0 +1,12 @@
+python -m venv venv
+source venv/bin/activate
+
+pip install -r requirements-dev.txt
+
+git init
+git status
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/USERNAME/ML_Project.git
+git branch -M main
+git push -u origin main
